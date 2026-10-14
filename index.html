@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Q Stamp — Authorship Stamping</title>
+<style>
+:root{--bg:#0f0b17;--pn:#1a1426;--ln:#2e2442;--tx:#e9e4f3;--mu:#9c90b4;--pu:#a970ff;--gr:#3ddc84}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif}
+header{padding:16px 24px;border-bottom:1px solid var(--ln);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+h1{margin:0;font-size:20px;color:var(--pu)}h2{font-size:16px;color:var(--pu);margin:0 0 10px}
+nav button,button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:7px 12px;cursor:pointer}
+nav button.on,button.pri{background:var(--pu);color:#fff;border-color:var(--pu)}button.ok{background:var(--gr);color:#062;border-color:var(--gr)}
+main{max-width:1100px;margin:auto;padding:20px}.pn{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:16px}
+textarea,input,select{width:100%;background:#120d1c;color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:8px;font:inherit}
+textarea{min-height:90px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+#drop{border:2px dashed var(--ln);border-radius:10px;padding:14px;text-align:center;color:var(--mu);margin-top:8px}#drop.hv{border-color:var(--gr)}
+.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-all}.mu{color:var(--mu)}
+.chips{display:inline-flex;gap:3px;align-items:center}.chip{padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--pu);border-radius:50px;padding:3px 10px;font-weight:700;color:var(--pu)}
+.badge b{background:var(--pu);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+mark{padding:0 3px;border-radius:3px;color:#000;font-weight:600}table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top;font-size:13px}
+.st-verified-dated{color:var(--gr)}.st-claimed{color:#ffc857}.st-unverified{color:#ff6b6b}.hide{display:none}
+footer{text-align:center;color:var(--mu);padding:20px;border-top:1px solid var(--ln)}
+</style></head><body>
+<header><h1>Q&nbsp;Stamp</h1><span class="mu">Real-time authorship stamping · Meaning Mirror</span>
+<nav class="row" style="flex:0"><button data-t="stamp" class="on">Stamp</button><button data-t="dir">Directory</button><button data-t="lex">Lexicon</button></nav></header>
+<main>
+<section id="t-stamp">
+<div class="pn"><h2>1 · Enter idea or drop a file</h2>
+<textarea id="idea" placeholder="Type or paste your idea…"></textarea>
+<div id="drop">Drop a file here (or <input type="file" id="file" style="width:auto">)</div>
+<div class="row" style="margin-top:10px">
+<label>Label<input id="label" placeholder="optional label"></label>
+<label>Status<select id="status"><option>verified-dated</option><option selected>claimed</option><option>unverified</option></select></label>
+<label>Human<input id="qh" value="Jeffrey Schnaus"></label><label>Age<input id="qa" placeholder="age"></label>
+<label>Color<select id="qc"><option>green</option><option>purple</option><option>blue</option><option>red</option><option>gold</option></select></label></div>
+<div class="row" style="margin-top:10px"><label>Others known (color:count, comma separated)<input id="others" placeholder="e.g. blue:2, red:1"></label>
+<button class="pri" id="go" style="flex:0 0 auto">Stamp now</button></div></div>
+<div class="pn hide" id="out"></div>
+</section>
+<section id="t-dir" class="hide"><div class="pn"><h2>Directory</h2>
+<div class="row"><select id="fc"><option value="">All colors</option></select><select id="fs"><option value="">All statuses</option><option>verified-dated</option><option>claimed</option><option>unverified</option></select>
+<input id="fl" placeholder="filter label/text"><button id="exp" style="flex:0 0 auto">Export JSON</button></div>
+<table><thead><tr><th>#</th><th>Date (America/Denver)</th><th>ID</th><th>Label / text</th><th>Originality</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section id="t-lex" class="hide"><div class="pn"><h2>Lexicon</h2><div id="lexv"></div></div></section>
+</main>
+<footer>Concept: Jeffrey Schnaus. Prototype built 2026-10-13.</footer>
+<script>
+"use strict";
+const KEY="qstamp.items.v1",$=s=>document.querySelector(s);
+const COL={green:"#3ddc84",purple:"#a970ff",blue:"#4ea8ff",red:"#ff6b6b",gold:"#ffc857"};
+const HL=["#3ddc84","#a970ff","#4ea8ff","#ffc857","#ff8fab","#5ee7df"];
+const STOP=new Set("a an and are as at be but by for from has have i if in into is it its of on or so that the their this to was we were will with you your my me our not can just what when which who how all any about there they them then than also very".split(" "));
+const LEX=[{term:"Meaning Mirror",definition:"A process that reflects a person's intended meaning back to them so they can verify or correct the interpretation.",classification:"Proposed coinage",status:"Approved by user",note:"Not claimed globally novel without research."}];
+let items=JSON.parse(localStorage.getItem(KEY)||"[]"),fileBuf=null,fileName="";
+const save=()=>localStorage.setItem(KEY,JSON.stringify(items));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function denverISO(d){const p={};new Intl.DateTimeFormat("en-CA",{timeZone:"America/Denver",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23",timeZoneName:"shortOffset"}).formatToParts(d).forEach(x=>p[x.type]=x.value);
+let off=(p.timeZoneName||"GMT").replace("GMT","")||"+0";const m=off.match(/([+-])(\d+)(?::(\d+))?/);off=m?m[1]+m[2].padStart(2,"0")+":"+(m[3]||"00"):"+00:00";
+return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}${off}`;}
+async function sha(buf){const h=await crypto.subtle.digest("SHA-256",buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+const enc=t=>new TextEncoder().encode(t);
+function clean(t){return t.replace(/\s+/g," ").trim().replace(/^./,c=>c.toUpperCase()).replace(/([^.!?])$/,"$1.");}
+function tags(t){const f={};(t.toLowerCase().match(/[a-z][a-z'-]{2,}/g)||[]).forEach(w=>{if(!STOP.has(w))f[w]=(f[w]||0)+1});return Object.entries(f).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length).slice(0,6).map(x=>x[0]);}
+function hilite(t,tg){let h=esc(t);tg.forEach((w,i)=>{h=h.replace(new RegExp("\\b("+w.replace(/[.*+?^${}()|[\]\\-]/g,"\\$&")+")\\b","gi"),`<mark style="background:${HL[i%HL.length]}">$1</mark>`)});return h;}
+function parseOthers(s){return s.split(",").map(x=>x.trim()).filter(Boolean).map(x=>{const[c,n]=x.split(":");return{color:c.trim().toLowerCase(),count:parseInt(n,10)||1}});}
+function chips(it){return `<span class="chips"><span class="chip" style="background:${COL[it.q.color]||"#888"};color:#000">${esc(it.q.color.toUpperCase())} · 1st</span>${it.others.map(o=>`<span class="chip" style="background:${COL[o.color]||"#666"};color:#000;opacity:.75">${esc(o.color)} ×${o.count}</span>`).join("")}</span>`;}
+function qbadge(it){return `<span class="badge" title="Qhuehi: human, age, color"><b>Q</b>${esc(it.q.human)} · ${esc(it.q.age||"age ?")} · <span style="color:${COL[it.q.color]}">${esc(it.q.color)}</span></span>`;}
+function record(it){return JSON.stringify({id:it.id,seq:it.seq,stamped:it.date,sha256:it.hash,source:it.kind==="file"?it.fileName:"text",author:it.q.human,status:it.status,originality:[it.q.color+"(first)"].concat(it.others.map(o=>o.color+"x"+o.count))},null,1);}
+async function stamp(){const text=$("#idea").value;if(!text.trim()&&!fileBuf){alert("Enter text or drop a file.");return;}
+const d=new Date(),seq=(items.reduce((m,i)=>Math.max(m,i.seq),0))+1,kind=fileBuf?"file":"text";
+const hash=await sha(fileBuf||enc(text));const it={seq,id:"QS-"+denverISO(d).slice(0,10).replace(/-/g,"")+"-"+String(seq).padStart(4,"0")+"-"+hash.slice(0,6),
+date:denverISO(d),epoch:d.getTime(),hash,kind,fileName,text:kind==="file"?"[file] "+fileName:text,
+cleaned:kind==="file"?"":clean(text),tags:kind==="file"?[]:tags(text),confirmed:false,label:$("#label").value.trim(),status:$("#status").value,
+q:{human:$("#qh").value.trim()||"unknown",age:$("#qa").value.trim(),color:$("#qc").value},others:parseOthers($("#others").value)};
+if(kind==="file")it.fileB64=fileBuf.byteLength<2e6?btoa(String.fromCharCode(...new Uint8Array(fileBuf))):null;
+items.push(it);save();fileBuf=null;fileName="";$("#drop").firstChild.textContent="Drop a file here (or ";show(it);renderDir();}
+function show(it){const o=$("#out");o.classList.remove("hide");
+o.innerHTML=`<h2>Stamped #${it.seq} ${qbadge(it)}</h2><div class="row"><div><div class="mu">ID</div><div class="mono">${esc(it.id)}</div></div><div><div class="mu">Date/time (America/Denver)</div><div class="mono">${esc(it.date)}</div></div></div>
+<div class="mu" style="margin-top:8px">SHA-256</div><div class="mono">${it.hash}</div><div style="margin:8px 0">${chips(it)} <span class="st-${it.status}">${it.status}</span></div>
+${it.kind==="text"?`<h2 style="margin-top:14px">Meaning Mirror</h2><div class="mu">Original</div><div class="pn" style="padding:10px">${hilite(it.text,it.tags)}</div>
+<div class="mu">Read-back (edit, then confirm)</div><textarea id="rb">${esc(it.cleaned)}</textarea>
+<div class="row" style="margin-top:6px"><div>Tag words: ${it.tags.map((w,i)=>`<mark style="background:${HL[i%HL.length]}">${esc(w)}</mark>`).join(" ")}</div><button class="ok" id="cf" style="flex:0 0 auto">${it.confirmed?"✓ Confirmed":"Confirm meaning"}</button></div>`:""}`;
+const cf=$("#cf");if(cf)cf.onclick=()=>{it.cleaned=$("#rb").value;it.confirmed=true;it.confirmedAt=denverISO(new Date());save();show(it);renderDir();};}
+function renderDir(){const fc=$("#fc").value,fs=$("#fs").value,fl=$("#fl").value.toLowerCase();
+const cs=new Set();items.forEach(i=>{cs.add(i.q.color);i.others.forEach(o=>cs.add(o.color))});
+$("#fc").innerHTML='<option value="">All colors</option>'+[...cs].map(c=>`<option ${c===fc?"selected":""}>${esc(c)}</option>`).join("");
+$("#rows").innerHTML=items.filter(i=>(!fc||i.q.color===fc||i.others.some(o=>o.color===fc))&&(!fs||i.status===fs)&&(!fl||(i.label+" "+i.text).toLowerCase().includes(fl))).slice().reverse().map(i=>
+`<tr><td>${i.seq}</td><td class="mono">${esc(i.date)}</td><td class="mono">${esc(i.id)}</td><td><b>${esc(i.label||"—")}</b><br><span class="mu">${esc(i.text.slice(0,80))}</span>${i.confirmed?' <span style="color:var(--gr)">✓mirror</span>':""}</td><td>${chips(i)}</td><td class="st-${i.status}">${i.status}</td>
+<td><button data-a="view" data-s="${i.seq}">View</button> <button data-a="ver" data-s="${i.seq}">Verify</button> <button data-a="copy" data-s="${i.seq}">Copy record</button> <span id="v${i.seq}"></span></td></tr>`).join("")||'<tr><td colspan="7" class="mu">No items yet.</td></tr>';}
+$("#rows").onclick=async e=>{const b=e.target.closest("button");if(!b)return;const it=items.find(i=>i.seq==b.dataset.s);
+if(b.dataset.a==="view"){tab("stamp");show(it);}
+if(b.dataset.a==="copy"){await navigator.clipboard.writeText(record(it)).catch(()=>prompt("Copy:",record(it)));b.textContent="Copied";}
+if(b.dataset.a==="ver"){let buf;if(it.kind==="text")buf=enc(it.text);else if(it.fileB64)buf=Uint8Array.from(atob(it.fileB64),c=>c.charCodeAt(0));else{alert("Original file too large to store; re-drop it on the Stamp tab and compare hash manually.");return;}
+const h=await sha(buf);$("#v"+it.seq).innerHTML=h===it.hash?'<span style="color:var(--gr)">✓ unchanged</span>':'<span style="color:#ff6b6b">✗ MISMATCH</span>';}};
+$("#exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({exported:denverISO(new Date()),items},null,2)],{type:"application/json"}));a.download="q-stamp-export.json";a.click();};
+["#fc","#fs","#fl"].forEach(s=>$(s).oninput=renderDir);
+function tab(t){document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));["stamp","dir","lex"].forEach(x=>$("#t-"+x).classList.toggle("hide",x!==t));}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function loadFile(f){const r=new FileReader();r.onload=()=>{fileBuf=r.result;fileName=f.name;$("#drop").firstChild.textContent="Loaded: "+f.name+" ("+f.size+" bytes) — press Stamp now. (or ";};r.readAsArrayBuffer(f);}
+const dr=$("#drop");dr.ondragover=e=>{e.preventDefault();dr.classList.add("hv")};dr.ondragleave=()=>dr.classList.remove("hv");
+dr.ondrop=e=>{e.preventDefault();dr.classList.remove("hv");if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);};$("#file").onchange=e=>e.target.files[0]&&loadFile(e.target.files[0]);
+$("#go").onclick=stamp;
+$("#lexv").innerHTML=LEX.map(l=>`<table><tr><th>Term</th><td><b>${esc(l.term)}</b></td></tr><tr><th>Definition</th><td>${esc(l.definition)}</td></tr>
+<tr><th>Classification</th><td>${["Established word","Project-specific definition","Proposed coinage"].map(c=>`<span class="chip" style="background:${c===l.classification?"var(--pu)":"var(--ln)"};color:#fff">${c}</span>`).join(" ")}</td></tr>
+<tr><th>Status</th><td style="color:var(--gr)">${esc(l.status)}</td></tr><tr><th>Note</th><td class="mu">${esc(l.note)}</td></tr></table>`).join("");
+renderDir();
+</script></body></html>
