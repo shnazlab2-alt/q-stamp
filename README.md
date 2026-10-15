@@ -16,3 +16,9 @@ Real-time authorship/provenance stamping prototype (SHA-256 fingerprint, America
 - `lexicon.json` — lexicon
 - `PREREG-2026-10-13.md` — pre-registration
 - `SHA256SUMS.txt` — checksums
+
+<!-- stamp -->
+---
+**Author: Jeff SHNaZLab (Jeffrey Schnaus) · Named credit · Created 2026-10-13 10:14 MDT · First public 2026-10-14 00:26:05 MDT · 🟢 green originality mark**  
+_Concept and direction: Jeffrey Schnaus; AI-assisted build._
+<!-- /stamp -->
