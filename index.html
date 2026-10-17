@@ -17,9 +17,13 @@ textarea{min-height:90px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:c
 mark{padding:0 3px;border-radius:3px;color:#000;font-weight:600}table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top;font-size:13px}
 .st-verified-dated{color:var(--gr)}.st-claimed{color:#ffc857}.st-unverified{color:#ff6b6b}.hide{display:none}
 footer{text-align:center;color:var(--mu);padding:20px;border-top:1px solid var(--ln)}
-</style></head><body>
+</style><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/shnaz.css"><style id="sz-theme">:root{--bg:#07071a;--pn:#14142e;--ln:rgba(170,140,255,.22);--tx:#f2f0ff;--mu:#a7a3c9;--pu:#d946ef;--gr:#39ff88}
+body.sz h1{background:var(--sz-grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+body.sz button.pri,body.sz nav:not(.sz-nav) button.on{background:linear-gradient(90deg,#e11d74,#ec4899)!important;border-color:transparent!important;box-shadow:0 6px 18px rgba(225,29,116,.35)}
+body.sz section,body.sz .card,body.sz .st{border-radius:var(--sz-r)}
+body.sz table{border-collapse:collapse}body.sz input[type=file]{max-width:100%}body.sz td,body.sz th{border-bottom-color:var(--sz-line)!important}</style></head><body class="sz"><script src="/shnaz-nav.js"></script>
 <header><h1>Q&nbsp;Stamp</h1><span class="mu">Real-time authorship stamping · Meaning Mirror</span>
-<nav class="row" style="flex:0"><button data-t="stamp" class="on">Stamp</button><button data-t="dir">Directory</button><button data-t="lex">Lexicon</button></nav></header>
+<nav class="row" style="flex:0"><button data-t="all" class="on">All</button><button data-t="stamp">Stamp</button><button data-t="dir">Directory</button><button data-t="lex">Lexicon</button></nav></header>
 <main>
 <section id="t-stamp">
 <div class="pn"><h2>1 · Enter idea or drop a file</h2>
@@ -37,7 +41,7 @@ footer{text-align:center;color:var(--mu);padding:20px;border-top:1px solid var(-
 <section id="t-dir" class="hide"><div class="pn"><h2>Directory</h2>
 <div class="row"><select id="fc"><option value="">All colors</option></select><select id="fs"><option value="">All statuses</option><option>verified-dated</option><option>claimed</option><option>unverified</option></select>
 <input id="fl" placeholder="filter label/text"><button id="exp" style="flex:0 0 auto">Export JSON</button></div>
-<table><thead><tr><th>#</th><th>Date (America/Denver)</th><th>ID</th><th>Label / text</th><th>Originality</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%"><table><thead><tr><th>#</th><th>Date (America/Denver)</th><th>ID</th><th>Label / text</th><th>Originality</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div></div></section>
 <section id="t-lex" class="hide"><div class="pn"><h2>Lexicon</h2><div id="lexv"></div></div></section>
 </main>
 <footer>Concept: Jeffrey Schnaus. Prototype built 2026-10-13.</footer>
@@ -91,8 +95,8 @@ if(b.dataset.a==="ver"){let buf;if(it.kind==="text")buf=enc(it.text);else if(it.
 const h=await sha(buf);$("#v"+it.seq).innerHTML=h===it.hash?'<span style="color:var(--gr)">✓ unchanged</span>':'<span style="color:#ff6b6b">✗ MISMATCH</span>';}};
 $("#exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({exported:denverISO(new Date()),items},null,2)],{type:"application/json"}));a.download="q-stamp-export.json";a.click();};
 ["#fc","#fs","#fl"].forEach(s=>$(s).oninput=renderDir);
-function tab(t){document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));["stamp","dir","lex"].forEach(x=>$("#t-"+x).classList.toggle("hide",x!==t));}
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function tab(t){document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));["stamp","dir","lex"].forEach(x=>$("#t-"+x).classList.toggle("hide",t!=="all"&&x!==t));}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>tab(b.dataset.t));tab("all");
 function loadFile(f){const r=new FileReader();r.onload=()=>{fileBuf=r.result;fileName=f.name;$("#drop").firstChild.textContent="Loaded: "+f.name+" ("+f.size+" bytes) — press Stamp now. (or ";};r.readAsArrayBuffer(f);}
 const dr=$("#drop");dr.ondragover=e=>{e.preventDefault();dr.classList.add("hv")};dr.ondragleave=()=>dr.classList.remove("hv");
 dr.ondrop=e=>{e.preventDefault();dr.classList.remove("hv");if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);};$("#file").onchange=e=>e.target.files[0]&&loadFile(e.target.files[0]);
