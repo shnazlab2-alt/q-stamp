@@ -17,10 +17,10 @@ textarea{min-height:90px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:c
 mark{padding:0 3px;border-radius:3px;color:#000;font-weight:600}table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top;font-size:13px}
 .st-verified-dated{color:var(--gr)}.st-claimed{color:#ffc857}.st-unverified{color:#ff6b6b}.hide{display:none}
 footer{text-align:center;color:var(--mu);padding:20px;border-top:1px solid var(--ln)}
-</style><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/shnaz.css"><style id="sz-theme">:root{--bg:#07071a;--pn:#14142e;--ln:rgba(170,140,255,.22);--tx:#f2f0ff;--mu:#a7a3c9;--pu:#d946ef;--gr:#39ff88}
+</style><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/shnaz.css"><style id="sz-theme">:root{--bg:var(--sz-bg);--pn:var(--sz-card);--ln:var(--sz-line);--tx:var(--sz-tx);--mu:var(--sz-mu);--pu:var(--sz-pu2);--gr:var(--sz-gr)}
 body.sz h1{background:var(--sz-grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
 body.sz button.pri,body.sz nav:not(.sz-nav) button.on{background:linear-gradient(90deg,#e11d74,#ec4899)!important;border-color:transparent!important;box-shadow:0 6px 18px rgba(225,29,116,.35)}
-body.sz section,body.sz .card,body.sz .st{border-radius:var(--sz-r)}
+body.sz section,body.sz .card,body.sz .st{border-radius:var(--sz-r)}body.sz .st,body.sz .pn{background:var(--sz-card)!important;border-color:var(--sz-line)!important;color:var(--sz-tx)}body.sz td,body.sz th{color:var(--sz-tx)}body.sz textarea,body.sz input,body.sz select{background:var(--sz-input);color:var(--sz-tx)}body.sz .dn{color:var(--sz-warn)!important}html[data-sz-theme=light] body.sz tr.green{background:rgba(21,128,61,.12)}html[data-sz-theme=light] body.sz tr.grey{background:rgba(0,0,0,.05)}
 body.sz table{border-collapse:collapse}body.sz input[type=file]{max-width:100%}body.sz td,body.sz th{border-bottom-color:var(--sz-line)!important}</style></head><body class="sz"><script src="/shnaz-nav.js"></script>
 <header><h1>Q&nbsp;Stamp</h1><span class="mu">Real-time authorship stamping · Meaning Mirror</span>
 <nav class="row" style="flex:0"><button data-t="all" class="on">All</button><button data-t="stamp">Stamp</button><button data-t="dir">Directory</button><button data-t="lex">Lexicon</button></nav></header>
@@ -49,7 +49,7 @@ body.sz table{border-collapse:collapse}body.sz input[type=file]{max-width:100%}b
 "use strict";
 const KEY="qstamp.items.v1",$=s=>document.querySelector(s);
 const COL={green:"#3ddc84",purple:"#a970ff",blue:"#4ea8ff",red:"#ff6b6b",gold:"#ffc857"};
-const HL=["#3ddc84","#a970ff","#4ea8ff","#ffc857","#ff8fab","#5ee7df"];
+const HL=["#3ddc84","#a970ff","#4ea8ff","#ffc857","#a3e635","#5ee7df"];
 const STOP=new Set("a an and are as at be but by for from has have i if in into is it its of on or so that the their this to was we were will with you your my me our not can just what when which who how all any about there they them then than also very".split(" "));
 const LEX=[{term:"Meaning Mirror",definition:"A process that reflects a person's intended meaning back to them so they can verify or correct the interpretation.",classification:"Proposed coinage",status:"Approved by user",note:"Not claimed globally novel without research."}];
 let items=JSON.parse(localStorage.getItem(KEY)||"[]"),fileBuf=null,fileName="";
